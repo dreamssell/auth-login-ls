@@ -1,16 +1,135 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+import React, { useState, useCallback } from 'react';
+import { AnimatePresence } from 'framer-motion';
+import Background from '@/components/auth/Background';
+import SecurityBadge from '@/components/auth/SecurityBadge';
+import LogoHero from '@/components/auth/LogoHero';
+import ProgressBar from '@/components/auth/ProgressBar';
+import EmailStep from '@/components/auth/EmailStep';
+import PasswordStep from '@/components/auth/PasswordStep';
+import CardFooter from '@/components/auth/CardFooter';
+import PageFooter from '@/components/auth/PageFooter';
+import useSecurityProtection from '@/hooks/useSecurityProtection';
 
-// IMPORTANT: Fully REPLACE this with your own code
-const PlaceholderIndex = () => {
-  // PLACEHOLDER: Replace this entire return statement with the user's app.
-  // The inline background color is intentionally not part of the design system.
+const Index = () => {
+  useSecurityProtection();
+
+  const [step, setStep] = useState(1);
+  const [isLoading, setIsLoading] = useState(false);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [userName, setUserName] = useState('');
+  const [error, setError] = useState<string | null>(null);
+
+  // Step 1: Verify email/ID against API
+  const handleEmailSubmit = useCallback(
+    async (e: React.FormEvent) => {
+      e.preventDefault();
+      if (!email) return;
+      setError(null);
+      setIsLoading(true);
+
+      try {
+        // TODO: Replace with real API call
+        // const res = await fetch('/api/verify-identity', { method: 'POST', body: JSON.stringify({ email }) });
+        // const data = await res.json();
+        // if (!data.exists) throw new Error('Usuário não encontrado.');
+        // setUserName(data.name);
+
+        // Simulated response
+        await new Promise((r) => setTimeout(r, 1500));
+        setUserName('Cliente');
+        setStep(2);
+      } catch (err: any) {
+        setError(err?.message || 'Erro ao verificar identidade.');
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [email]
+  );
+
+  // Step 2: Authenticate with password
+  const handleLogin = useCallback(
+    async (e: React.FormEvent) => {
+      e.preventDefault();
+      if (!password) return;
+      setError(null);
+      setIsLoading(true);
+
+      try {
+        // TODO: Replace with real API call
+        // const res = await fetch('/api/authenticate', { method: 'POST', body: JSON.stringify({ email, password }) });
+        // const data = await res.json();
+        // if (!data.token) throw new Error('Senha incorreta.');
+        // window.location.href = data.redirectUrl;
+
+        await new Promise((r) => setTimeout(r, 2000));
+        alert('Autenticação Bem-sucedida! Redirecionando...');
+      } catch (err: any) {
+        setError(err?.message || 'Falha na autenticação.');
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [email, password]
+  );
+
+  const handleBack = useCallback(() => {
+    setStep(1);
+    setPassword('');
+    setError(null);
+  }, []);
+
   return (
-    <div className="flex min-h-screen items-center justify-center" style={{ backgroundColor: '#fcfbf8' }}>
-      <img data-lovable-blank-page-placeholder="REMOVE_THIS" src="/placeholder.svg" alt="Your app will live here!" />
+    <div className="min-h-screen flex flex-col items-center justify-center p-4 relative no-select">
+      <Background />
+
+      <div className="absolute top-6">
+        <SecurityBadge />
+      </div>
+
+      <div className="relative z-10 w-full max-w-md space-y-6">
+        <LogoHero />
+
+        {/* Login Card */}
+        <div className="glass-card rounded-2xl overflow-hidden glow-primary">
+          <ProgressBar step={step} />
+
+          <div className="p-6 sm:p-8">
+            <AnimatePresence mode="wait">
+              {step === 1 ? (
+                <EmailStep
+                  email={email}
+                  setEmail={setEmail}
+                  isLoading={isLoading}
+                  error={error}
+                  onSubmit={handleEmailSubmit}
+                />
+              ) : (
+                <PasswordStep
+                  email={email}
+                  userName={userName}
+                  password={password}
+                  setPassword={setPassword}
+                  showPassword={showPassword}
+                  toggleShowPassword={() => setShowPassword((v) => !v)}
+                  isLoading={isLoading}
+                  error={error}
+                  onSubmit={handleLogin}
+                  onBack={handleBack}
+                />
+              )}
+            </AnimatePresence>
+          </div>
+
+          <CardFooter />
+        </div>
+
+        <PageFooter />
+      </div>
     </div>
   );
 };
-
-const Index = PlaceholderIndex;
 
 export default Index;
