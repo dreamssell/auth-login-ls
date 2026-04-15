@@ -33,7 +33,7 @@ const Index = () => {
       try {
         const data = await verifyEmail(email);
         if (!data.exists) throw new Error('Usuário não encontrado.');
-        setUserName(data.name || 'Cliente');
+        setUserName(data.user?.display_name || data.name || 'Cliente');
         setStep(2);
       } catch (err: any) {
         setError(err?.message || 'Erro ao verificar identidade.');
@@ -54,7 +54,8 @@ const Index = () => {
 
       try {
         const data = await authenticate(email, password);
-        if (!data.token) throw new Error('Senha incorreta.');
+        const token = data.session?.access_token || data.token;
+        if (!token) throw new Error('Senha incorreta.');
         if (data.redirectUrl) {
           window.location.href = data.redirectUrl;
         }

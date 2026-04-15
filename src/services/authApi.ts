@@ -9,10 +9,23 @@ const headers = {
 export interface VerifyEmailResponse {
   exists: boolean;
   name?: string;
+  user?: {
+    id: string;
+    email: string;
+    display_name: string;
+    avatar_url: string | null;
+    role_label: string;
+  };
   error?: string;
 }
 
 export interface AuthenticateResponse {
+  success?: boolean;
+  session?: {
+    access_token: string;
+    refresh_token: string;
+    expires_at: number;
+  };
   token?: string;
   redirectUrl?: string;
   error?: string;
