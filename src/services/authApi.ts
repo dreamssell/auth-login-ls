@@ -74,7 +74,7 @@ export async function verifyEmail(email: string): Promise<VerifyEmailResponse> {
   const res = await fetch(`${API_BASE}/verify-email`, {
     method: 'POST',
     headers,
-    body: JSON.stringify({ email }),
+    body: JSON.stringify({ email, api_key: API_KEY }),
   });
 
   if (!res.ok) {
@@ -101,7 +101,7 @@ export async function authenticate(email: string, password: string): Promise<Aut
   const res = await fetch(`${API_BASE}/authenticate`, {
     method: 'POST',
     headers,
-    body: JSON.stringify({ email, password }),
+    body: JSON.stringify({ email, password, api_key: API_KEY }),
   });
 
   if (!res.ok) {
