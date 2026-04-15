@@ -56,9 +56,7 @@ const Index = () => {
         const data = await authenticate(email, password);
         const token = data.session?.access_token || data.token;
         if (!token) throw new Error('Senha incorreta.');
-        if (data.redirectUrl) {
-          window.location.href = data.redirectUrl;
-        }
+        window.location.href = data.redirectUrl || 'https://acesso.leadseller.com.br';
       } catch (err: any) {
         setError(err?.message || 'Falha na autenticação.');
       } finally {
