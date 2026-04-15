@@ -29,8 +29,13 @@ const Index = () => {
     async (e: React.FormEvent) => {
       e.preventDefault();
       if (!email) return;
+      if (loginLimiter.isBlocked()) {
+        setError(`Muitas tentativas. Aguarde ${loginLimiter.getSecondsUntilReset()}s.`);
+        return;
+      }
       setError(null);
       setIsLoading(true);
+      loginLimiter.recordAttempt();
 
       try {
         const data = await verifyEmail(email);
@@ -51,8 +56,13 @@ const Index = () => {
     async (e: React.FormEvent) => {
       e.preventDefault();
       if (!password) return;
+      if (loginLimiter.isBlocked()) {
+        setError(`Muitas tentativas. Aguarde ${loginLimiter.getSecondsUntilReset()}s.`);
+        return;
+      }
       setError(null);
       setIsLoading(true);
+      loginLimiter.recordAttempt();
 
       try {
         const data = await authenticate(email, password);
