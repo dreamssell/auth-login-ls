@@ -9,6 +9,7 @@ import PasswordStep from '@/components/auth/PasswordStep';
 import CardFooter from '@/components/auth/CardFooter';
 import PageFooter from '@/components/auth/PageFooter';
 import useSecurityProtection from '@/hooks/useSecurityProtection';
+import { verifyEmail, authenticate } from '@/services/authApi';
 
 const Index = () => {
   useSecurityProtection();
@@ -30,15 +31,9 @@ const Index = () => {
       setIsLoading(true);
 
       try {
-        // TODO: Replace with real API call
-        // const res = await fetch('/api/verify-identity', { method: 'POST', body: JSON.stringify({ email }) });
-        // const data = await res.json();
-        // if (!data.exists) throw new Error('Usuário não encontrado.');
-        // setUserName(data.name);
-
-        // Simulated response
-        await new Promise((r) => setTimeout(r, 1500));
-        setUserName('Cliente');
+        const data = await verifyEmail(email);
+        if (!data.exists) throw new Error('Usuário não encontrado.');
+        setUserName(data.name || 'Cliente');
         setStep(2);
       } catch (err: any) {
         setError(err?.message || 'Erro ao verificar identidade.');
@@ -58,14 +53,11 @@ const Index = () => {
       setIsLoading(true);
 
       try {
-        // TODO: Replace with real API call
-        // const res = await fetch('/api/authenticate', { method: 'POST', body: JSON.stringify({ email, password }) });
-        // const data = await res.json();
-        // if (!data.token) throw new Error('Senha incorreta.');
-        // window.location.href = data.redirectUrl;
-
-        await new Promise((r) => setTimeout(r, 2000));
-        alert('Autenticação Bem-sucedida! Redirecionando...');
+        const data = await authenticate(email, password);
+        if (!data.token) throw new Error('Senha incorreta.');
+        if (data.redirectUrl) {
+          window.location.href = data.redirectUrl;
+        }
       } catch (err: any) {
         setError(err?.message || 'Falha na autenticação.');
       } finally {
