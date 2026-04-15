@@ -9,10 +9,12 @@ import PasswordStep from '@/components/auth/PasswordStep';
 import CardFooter from '@/components/auth/CardFooter';
 import PageFooter from '@/components/auth/PageFooter';
 import useSecurityProtection from '@/hooks/useSecurityProtection';
+import { useRateLimiter } from '@/hooks/useRateLimiter';
 import { verifyEmail, authenticate } from '@/services/authApi';
 
 const Index = () => {
   useSecurityProtection();
+  const loginLimiter = useRateLimiter({ maxAttempts: 5, windowMs: 60_000 });
 
   const [step, setStep] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
