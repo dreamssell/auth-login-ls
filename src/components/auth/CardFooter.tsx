@@ -6,7 +6,7 @@ const CardFooter = () => (
       <HelpCircle className="w-4 h-4" />
       <span>Não possui acesso?</span>
       <a href="#" className="text-primary font-medium hover:underline">
-        Contate o seu consultor financeiro!
+        Entre em contato conosco!
       </a>
     </div>
   </div>
