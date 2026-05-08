@@ -5,6 +5,7 @@ import { motion } from 'framer-motion';
 interface PasswordStepProps {
   email: string;
   userName: string;
+  avatarUrl?: string | null;
   password: string;
   setPassword: (value: string) => void;
   showPassword: boolean;
@@ -18,6 +19,7 @@ interface PasswordStepProps {
 const PasswordStep = ({
   email,
   userName,
+  avatarUrl,
   password,
   setPassword,
   showPassword,
@@ -39,10 +41,21 @@ const PasswordStep = ({
     {/* User avatar & welcome */}
     <div className="flex items-center gap-4">
       <div className="relative">
-        <div className="w-14 h-14 rounded-full bg-primary/20 flex items-center justify-center">
-          <span className="text-xl font-bold text-primary">
-            {userName.charAt(0).toUpperCase()}
-          </span>
+        <div className="w-14 h-14 rounded-full bg-primary/20 flex items-center justify-center overflow-hidden ring-2 ring-primary/30">
+          {avatarUrl ? (
+            <img
+              src={avatarUrl}
+              alt={userName}
+              className="w-full h-full object-cover"
+              onError={(e) => {
+                (e.currentTarget as HTMLImageElement).style.display = 'none';
+              }}
+            />
+          ) : (
+            <span className="text-xl font-bold text-primary">
+              {userName.charAt(0).toUpperCase()}
+            </span>
+          )}
         </div>
         <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-emerald-500 rounded-full flex items-center justify-center ring-2 ring-card">
           <CheckCircle2 className="w-3 h-3 text-primary-foreground" />

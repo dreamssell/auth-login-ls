@@ -22,6 +22,7 @@ const Index = () => {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [userName, setUserName] = useState('');
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   // Step 1: Verify email/ID against API
@@ -41,6 +42,7 @@ const Index = () => {
         const data = await verifyEmail(email);
         if (!data.exists) throw new Error('Usuário não encontrado.');
         setUserName(data.user?.display_name || data.name || 'Cliente');
+        setAvatarUrl(data.user?.avatar_url || null);
         setStep(2);
       } catch (err: any) {
         setError(err?.message || 'Erro ao verificar identidade.');
@@ -116,6 +118,7 @@ const Index = () => {
                 <PasswordStep
                   email={email}
                   userName={userName}
+                  avatarUrl={avatarUrl}
                   password={password}
                   setPassword={setPassword}
                   showPassword={showPassword}
