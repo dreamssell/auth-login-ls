@@ -101,9 +101,10 @@ const Index = () => {
 
       <div className="relative z-10 w-full max-w-md flex flex-col items-center gap-4 sm:gap-6">
         <SecurityBadge />
+        <LogoHero />
 
         {/* Login Card */}
-        <div className="glass-card rounded-2xl overflow-hidden glow-primary">
+        <div className="w-full glass-card rounded-2xl overflow-hidden glow-primary">
           <ProgressBar step={step} />
 
           <div className="p-6 sm:p-8">
