@@ -69,12 +69,8 @@ const Index = () => {
 
       try {
         const data = await authenticate(email, password);
-        const token = data.session?.access_token || data.token;
-        if (!token) throw new Error('Senha incorreta.');
-        const redirect = data.redirectUrl && data.redirectUrl.startsWith('http') 
-          ? data.redirectUrl 
-          : 'https://acesso.leadseller.com.br';
-        window.location.href = redirect;
+        // Conforme contrato: redirecionar para data.redirectUrl. O Hub processa os tokens no /auth/callback.
+        window.location.href = data.redirectUrl!;
       } catch (err: any) {
         setError(err?.message || 'Falha na autenticação.');
       } finally {
