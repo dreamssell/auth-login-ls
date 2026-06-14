@@ -1,9 +1,17 @@
+// Contrato definido em "Integração de Autenticação — Página Externa de Login ↔ Hub Lead Seller" v1.0
 const API_BASE = 'https://gcjaeoxjhcfeispehmga.supabase.co/functions/v1';
-const API_KEY = 'ls_test_LeadSeller2026ProdAuthKey01abc';
+
+// Chave pública (anon) do Supabase do Hub — segura para uso no browser.
+const ANON_KEY =
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdjamFlb3hqaGNmZWlzcGVobWdhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYyNzYxODUsImV4cCI6MjA5MTg1MjE4NX0.lom6HJlDLttIF3iUFkfMKbi41h4lLLj3Ibsc2Bd-RWE';
+
+// API key emitida pelo painel do Hub para este site externo (vai no body, não no header).
+const SITE_API_KEY = 'ls_test_LeadSeller2026ProdAuthKey01abc';
 
 const headers = {
   'Content-Type': 'application/json',
-  'Authorization': `Bearer ${API_KEY}`,
+  apikey: ANON_KEY,
+  Authorization: `Bearer ${ANON_KEY}`,
 };
 
 export interface VerifyEmailResponse {
@@ -26,105 +34,47 @@ export interface AuthenticateResponse {
     refresh_token: string;
     expires_at: number;
   };
-  token?: string;
   redirectUrl?: string;
   error?: string;
 }
 
-export type LogEventType = 'verify_attempt' | 'verify_success' | 'verify_fail' | 'login_attempt' | 'login_success' | 'login_fail';
-
-export interface AccessLog {
-  event: LogEventType;
-  email: string;
-  timestamp: string;
-  ip?: string;
-  userAgent: string;
-  result: 'success' | 'error';
-  errorMessage?: string;
-}
-
-async function getClientIp(): Promise<string> {
-  try {
-    const res = await fetch('https://api.ipify.org?format=json');
-    const data = await res.json();
-    return data.ip || 'unknown';
-  } catch {
-    return 'unknown';
-  }
-}
-
-let cachedIp: string | null = null;
-
-export async function getIp(): Promise<string> {
-  if (!cachedIp) {
-    cachedIp = await getClientIp();
-  }
-  return cachedIp;
-}
-
-export async function sendAccessLog(log: Omit<AccessLog, 'timestamp' | 'userAgent' | 'ip'>): Promise<void> {
-  const ip = await getIp();
-  const payload: AccessLog = {
-    ...log,
-    timestamp: new Date().toISOString(),
-    userAgent: navigator.userAgent,
-    ip,
-  };
-
-  // Fire-and-forget: don't block the UI
-  fetch(`${API_BASE}/access-logs`, {
-    method: 'POST',
-    headers,
-    body: JSON.stringify(payload),
-  }).catch(() => {
-    // Silently fail — logging should never break the auth flow
-  });
-}
-
 export async function verifyEmail(email: string): Promise<VerifyEmailResponse> {
-  await sendAccessLog({ event: 'verify_attempt', email, result: 'success' });
-
   const res = await fetch(`${API_BASE}/verify-email`, {
     method: 'POST',
     headers,
-    body: JSON.stringify({ email, api_key: API_KEY }),
+    body: JSON.stringify({ email, api_key: SITE_API_KEY }),
   });
 
+  const data = await res.json().catch(() => ({}));
+
   if (!res.ok) {
-    const data = await res.json().catch(() => ({}));
-    const errorMsg = data.error || 'Erro ao verificar identidade.';
-    await sendAccessLog({ event: 'verify_fail', email, result: 'error', errorMessage: errorMsg });
-    throw new Error(errorMsg);
-  }
-
-  const data = await res.json();
-
-  if (!data.exists) {
-    await sendAccessLog({ event: 'verify_fail', email, result: 'error', errorMessage: 'Usuário não encontrado.' });
-  } else {
-    await sendAccessLog({ event: 'verify_success', email, result: 'success' });
+    throw new Error(data?.error || 'Erro ao verificar identidade.');
   }
 
   return data;
 }
 
-export async function authenticate(email: string, password: string): Promise<AuthenticateResponse> {
-  await sendAccessLog({ event: 'login_attempt', email, result: 'success' });
-
+export async function authenticate(
+  email: string,
+  password: string
+): Promise<AuthenticateResponse> {
   const res = await fetch(`${API_BASE}/authenticate`, {
     method: 'POST',
     headers,
-    body: JSON.stringify({ email, password, api_key: API_KEY }),
+    body: JSON.stringify({ email, password, api_key: SITE_API_KEY }),
   });
 
+  const data: AuthenticateResponse = await res.json().catch(() => ({} as AuthenticateResponse));
+
+  // Erros de autorização/validação (400/403/500)
   if (!res.ok) {
-    const data = await res.json().catch(() => ({}));
-    const errorMsg = data.error || 'Falha na autenticação.';
-    await sendAccessLog({ event: 'login_fail', email, result: 'error', errorMessage: errorMsg });
-    throw new Error(errorMsg);
+    throw new Error(data?.error || 'Erro interno do servidor.');
   }
 
-  const data = await res.json();
-  await sendAccessLog({ event: 'login_success', email, result: 'success' });
+  // Falhas previsíveis: HTTP 200 com success:false
+  if (data.success === false || !data.redirectUrl) {
+    throw new Error(data?.error || 'Falha na autenticação.');
+  }
+
   return data;
 }
