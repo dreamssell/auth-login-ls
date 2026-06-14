@@ -3,6 +3,7 @@ import { AnimatePresence } from 'framer-motion';
 import Background from '@/components/auth/Background';
 import SecurityBadge from '@/components/auth/SecurityBadge';
 import LogoHero from '@/components/auth/LogoHero';
+import InstallBanner from '@/components/auth/InstallBanner';
 import ProgressBar from '@/components/auth/ProgressBar';
 import EmailStep from '@/components/auth/EmailStep';
 import PasswordStep from '@/components/auth/PasswordStep';
@@ -91,6 +92,7 @@ const Index = () => {
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-4 relative no-select">
+      <InstallBanner />
       <Background />
 
       <div className="absolute top-6">
