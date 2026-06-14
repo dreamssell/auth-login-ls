@@ -87,16 +87,20 @@ const Index = () => {
   }, []);
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-4 relative no-select">
+    <div
+      className="min-h-[100svh] flex flex-col items-center justify-center px-4 py-6 relative no-select"
+      style={{
+        paddingTop: 'max(1.5rem, env(safe-area-inset-top))',
+        paddingBottom: 'max(1.5rem, env(safe-area-inset-bottom))',
+        paddingLeft: 'max(1rem, env(safe-area-inset-left))',
+        paddingRight: 'max(1rem, env(safe-area-inset-right))',
+      }}
+    >
       <InstallBanner />
       <Background />
 
-      <div className="absolute top-6">
+      <div className="relative z-10 w-full max-w-md flex flex-col items-center gap-4 sm:gap-6">
         <SecurityBadge />
-      </div>
-
-      <div className="relative z-10 w-full max-w-md space-y-6">
-        <LogoHero />
 
         {/* Login Card */}
         <div className="glass-card rounded-2xl overflow-hidden glow-primary">
