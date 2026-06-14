@@ -38,7 +38,8 @@ const InstallBanner = () => {
         animate={{ y: 0, opacity: 1 }}
         exit={{ y: -80, opacity: 0 }}
         transition={{ type: 'spring', stiffness: 260, damping: 24 }}
-        className="fixed top-3 inset-x-0 z-50 flex justify-center px-3 pointer-events-none"
+        className="fixed inset-x-0 z-50 flex justify-center px-3 pointer-events-none"
+        style={{ top: 'max(0.75rem, env(safe-area-inset-top))' }}
       >
         <div className="pointer-events-auto w-full max-w-xl">
           <div className="relative overflow-hidden rounded-2xl border border-primary/30 bg-gradient-to-r from-[hsl(220_30%_10%/0.95)] via-[hsl(217_60%_14%/0.95)] to-[hsl(220_30%_10%/0.95)] backdrop-blur-xl shadow-[0_10px_40px_-10px_hsl(var(--primary)/0.5)]">
