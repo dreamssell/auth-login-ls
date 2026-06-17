@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { AnimatePresence } from 'framer-motion';
 import Background from '@/components/auth/Background';
 import SecurityBadge from '@/components/auth/SecurityBadge';
@@ -9,9 +9,12 @@ import EmailStep from '@/components/auth/EmailStep';
 import PasswordStep from '@/components/auth/PasswordStep';
 import CardFooter from '@/components/auth/CardFooter';
 import PageFooter from '@/components/auth/PageFooter';
+import PasskeyRegisterPrompt from '@/components/auth/PasskeyRegisterPrompt';
 import useSecurityProtection from '@/hooks/useSecurityProtection';
 import { useRateLimiter } from '@/hooks/useRateLimiter';
-import { verifyEmail, authenticate } from '@/services/authApi';
+import { verifyEmail, authenticate, type AuthenticateResponse } from '@/services/authApi';
+import { loginWithPasskey } from '@/services/passkeyApi';
+import { isPasskeySupported } from '@/lib/webauthn';
 
 const Index = () => {
   useSecurityProtection();
@@ -19,12 +22,24 @@ const Index = () => {
 
   const [step, setStep] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
+  const [passkeyLoading, setPasskeyLoading] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [userName, setUserName] = useState('');
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  // Suporte a WebAuthn no navegador (client only)
+  const [passkeySupported, setPasskeySupported] = useState(false);
+  useEffect(() => setPasskeySupported(isPasskeySupported()), []);
+
+  // Dados para prompt de cadastro de biometria após login com senha
+  const [registerPrompt, setRegisterPrompt] = useState<{
+    open: boolean;
+    accessToken: string;
+    redirectUrl: string;
+  }>({ open: false, accessToken: '', redirectUrl: '' });
 
   // Step 1: Verify email/ID against API
   const handleEmailSubmit = useCallback(
@@ -54,6 +69,16 @@ const Index = () => {
     [email]
   );
 
+  const finishLogin = useCallback((data: AuthenticateResponse) => {
+    const token = data.session?.access_token;
+    const redirect = data.redirectUrl!;
+    if (token && passkeySupported) {
+      setRegisterPrompt({ open: true, accessToken: token, redirectUrl: redirect });
+    } else {
+      window.location.href = redirect;
+    }
+  }, [passkeySupported]);
+
   // Step 2: Authenticate with password
   const handleLogin = useCallback(
     async (e: React.FormEvent) => {
@@ -69,22 +94,57 @@ const Index = () => {
 
       try {
         const data = await authenticate(email, password);
-        // Conforme contrato: redirecionar para data.redirectUrl. O Hub processa os tokens no /auth/callback.
-        window.location.href = data.redirectUrl!;
+        finishLogin(data);
       } catch (err: any) {
         setError(err?.message || 'Falha na autenticação.');
       } finally {
         setIsLoading(false);
       }
     },
-    [email, password]
+    [email, password, finishLogin]
   );
+
+  // Login via biometria (discoverable se sem email, ou direcionado)
+  const handlePasskeyLogin = useCallback(async () => {
+    setError(null);
+    setPasskeyLoading(true);
+    try {
+      const result = await loginWithPasskey(email || undefined);
+
+      // Stub do backend ainda não devolve sessão/redirect
+      if (result.stubVerification || !result.redirectUrl) {
+        setError(
+          'Login por biometria reconhecido, mas a verificação criptográfica do servidor ainda está em ativação. Use sua senha por enquanto.'
+        );
+        return;
+      }
+      window.location.href = result.redirectUrl;
+    } catch (err: any) {
+      if (err?.name === 'NotAllowedError' || err?.name === 'AbortError') {
+        setError(null);
+        return;
+      }
+      if (err?.status === 404) {
+        setError('Nenhuma biometria cadastrada para este e-mail. Entre com sua senha.');
+        return;
+      }
+      setError(err?.message || 'Falha na autenticação biométrica.');
+    } finally {
+      setPasskeyLoading(false);
+    }
+  }, [email]);
 
   const handleBack = useCallback(() => {
     setStep(1);
     setPassword('');
     setError(null);
   }, []);
+
+  const closeRegisterPrompt = useCallback(() => {
+    const redirect = registerPrompt.redirectUrl;
+    setRegisterPrompt({ open: false, accessToken: '', redirectUrl: '' });
+    if (redirect) window.location.href = redirect;
+  }, [registerPrompt.redirectUrl]);
 
   return (
     <div
@@ -116,6 +176,9 @@ const Index = () => {
                   isLoading={isLoading}
                   error={error}
                   onSubmit={handleEmailSubmit}
+                  showPasskey={passkeySupported}
+                  passkeyLoading={passkeyLoading}
+                  onPasskeyLogin={handlePasskeyLogin}
                 />
               ) : (
                 <PasswordStep
@@ -140,6 +203,14 @@ const Index = () => {
 
         <PageFooter />
       </div>
+
+      <PasskeyRegisterPrompt
+        open={registerPrompt.open}
+        email={email}
+        userName={userName}
+        accessToken={registerPrompt.accessToken}
+        onDone={closeRegisterPrompt}
+      />
     </div>
   );
 };
