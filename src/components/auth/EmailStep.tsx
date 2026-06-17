@@ -117,5 +117,3 @@ const EmailStep = ({
 
 export default EmailStep;
 
-
-export default EmailStep;
