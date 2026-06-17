@@ -83,6 +83,39 @@ const EmailStep = ({
           </>
         )}
       </button>
+
+      {showPasskey && (
+        <>
+          <div className="flex items-center gap-3 py-1">
+            <div className="flex-1 h-px bg-border" />
+            <span className="text-xs uppercase tracking-wider text-muted-foreground">ou</span>
+            <div className="flex-1 h-px bg-border" />
+          </div>
+          <button
+            type="button"
+            onClick={onPasskeyLogin}
+            disabled={isLoading || passkeyLoading}
+            className="w-full flex items-center justify-center gap-2 bg-secondary border border-border text-foreground font-semibold py-4 rounded-xl hover:bg-secondary/70 hover:border-primary/50 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {passkeyLoading ? (
+              <>
+                <Loader2 className="w-5 h-5 animate-spin" />
+                Aguardando biometria...
+              </>
+            ) : (
+              <>
+                <Fingerprint className="w-5 h-5 text-primary" />
+                Entrar com biometria
+              </>
+            )}
+          </button>
+        </>
+      )}
+    </div>
+  </motion.form>
+);
+
+export default EmailStep;
     </div>
   </motion.form>
 );
