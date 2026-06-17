@@ -116,8 +116,6 @@ const EmailStep = ({
 );
 
 export default EmailStep;
-    </div>
-  </motion.form>
-);
+
 
 export default EmailStep;
