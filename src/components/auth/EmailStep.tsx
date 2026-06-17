@@ -8,9 +8,21 @@ interface EmailStepProps {
   isLoading: boolean;
   error: string | null;
   onSubmit: (e: React.FormEvent) => void;
+  showPasskey?: boolean;
+  passkeyLoading?: boolean;
+  onPasskeyLogin?: () => void;
 }
 
-const EmailStep = ({ email, setEmail, isLoading, error, onSubmit }: EmailStepProps) => (
+const EmailStep = ({
+  email,
+  setEmail,
+  isLoading,
+  error,
+  onSubmit,
+  showPasskey,
+  passkeyLoading,
+  onPasskeyLogin,
+}: EmailStepProps) => (
   <motion.form
     key="email-step"
     initial={{ opacity: 0, x: -30 }}
